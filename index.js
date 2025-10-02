@@ -6,7 +6,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data', 'libros_1000.json');
+const DATA_FILE = path.join(__dirname, 'data', 'libros.json');
 
 app.use(express.json());
 
@@ -31,7 +31,6 @@ const isValidUUID = (id) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 };
-
 
 app.get('/api/libros', async (req, res) => {
   try {
@@ -69,19 +68,19 @@ app.post('/api/libros', async (req, res) => {
 
     if (!title || !author) {
       return res.status(400).json({ 
-        error: 'Los campos title y author son obligatorios' 
+        error: 'Los campos titulo y autor son obligatorios' 
       });
     }
-
+    
     if (typeof title !== 'string' || typeof author !== 'string') {
       return res.status(400).json({ 
-        error: 'Title y author deben ser strings' 
+        error: 'Titulo y autor no validos' 
       });
     }
     
     if (year && (typeof year !== 'number' || year < 0 || year > new Date().getFullYear())) {
       return res.status(400).json({ 
-        error: 'Year debe ser un número válido' 
+        error: 'El año debe ser un número válido' 
       });
     }
     
@@ -117,7 +116,7 @@ app.post('/api/libros', async (req, res) => {
 app.delete('/api/libros/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
+    
     if (!isValidUUID(id)) {
       return res.status(400).json({ error: 'ID inválido' });
     }
@@ -128,7 +127,7 @@ app.delete('/api/libros/:id', async (req, res) => {
     if (bookIndex === -1) {
       return res.status(404).json({ error: 'Libro no encontrado' });
     }
-
+    
     const deletedBook = books.splice(bookIndex, 1)[0];
     await writeBooksData(books);
     
@@ -141,8 +140,6 @@ app.delete('/api/libros/:id', async (req, res) => {
   }
 });
 
-app.use(errorHandler);
-
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Bienvenido a la API de Biblioteca Aurora',
@@ -154,6 +151,15 @@ app.get('/', (req, res) => {
     }
   });
 });
+
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Ruta no encontrada',
+    message: `La ruta ${req.originalUrl} no existe en este servidor`,
+  });
+});
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
